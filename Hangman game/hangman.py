@@ -1,146 +1,52 @@
-# Hangman game
 import random
 
-WORDLIST_FILENAME = "words.txt"
+# Predefined list of words
+word_list = [
+    "love", "life", "home", "work", "play", "good", "time", "help", "come", "gone",
+    "read", "book", "food", "walk", "talk", "stop", "open", "fast", "slow",
+    "cold", "warm", "rain", "snow", "wind", "fire", "dark", "blue", "pink",
+    "baby", "girl", "boy", "name", "face", "hand", "foot", "head", "hair", "eyes",
+    "shop", "cash", "card", "bank", "ride", "bike", "cook", "bake", "wash",
+    "call", "text", "mail", "send", "list", "note", "news", "data", "file", "code"
+]
 
-def loadWords():
-    """
-    Returns a list of valid words. Words are strings of lowercase letters.
-    
-    Depending on the size of the word list, this function may
-    take a while to finish.
-    """
-    print("Loading word list from file...")
-    # inFile: file
-    inFile = open(WORDLIST_FILENAME, 'r')
-    # line: string
-    line = inFile.readline()
-    # wordlist: list of strings
-    wordlist = line.split()
-    print("  ", len(wordlist), "words loaded.")
-    return wordlist
+# Choose a random word
+chosen_word = random.choice(word_list)
+word_display = ["_"] * len(chosen_word)
+guessed_letters = set()
+incorrect_guesses = 0
+max_incorrect = 6
 
-def chooseWord(wordlist):
-    """
-    wordlist (list): list of words (strings)
+print("🎉 Welcome to Hangman!")
+print("Guess the word, one letter at a time.")
+print(f"You have {max_incorrect} incorrect guesses allowed.\n")
 
-    Returns a word from wordlist at random
-    """
-    return random.choice(wordlist)
+while incorrect_guesses < max_incorrect and "_" in word_display:
+    print("Word:", " ".join(word_display))
+    print("Guessed letters:", " ".join(sorted(guessed_letters)))
+    guess = input("Enter a letter: ").lower()
 
-# -----------------------------------
-wordlist = loadWords()
+    if not guess.isalpha() or len(guess) != 1:
+        print("⚠️ Please enter a single alphabetic character.\n")
+        continue
 
-def isWordGuessed(secretWord, lettersGuessed):
-    '''
-    secretWord: string, the word the user is guessing
-    lettersGuessed: list, what letters have been guessed so far
-    returns: boolean, True if all the letters of secretWord are in lettersGuessed;
-      False otherwise
-    '''
-    c=0
-    for i in lettersGuessed:
-        if i in secretWord:
-            c+=1
-    if c==len(secretWord):
-        return True
+    if guess in guessed_letters:
+        print("🔁 You already guessed that letter.\n")
+        continue
+
+    guessed_letters.add(guess)
+
+    if guess in chosen_word:
+        for i, letter in enumerate(chosen_word):
+            if letter == guess:
+                word_display[i] = guess
+        print("✅ Good guess!\n")
     else:
-        return False
+        incorrect_guesses += 1
+        print(f"❌ Wrong guess! You have {max_incorrect - incorrect_guesses} tries left.\n")
 
-
-def getGuessedWord(secretWord, lettersGuessed):
-    '''
-    secretWord: string, the word the user is guessing
-    lettersGuessed: list, what letters have been guessed so far
-    returns: string, comprised of letters and underscores that represents
-      what letters in secretWord have been guessed so far.
-    '''
-    s=[]
-    for i in secretWord:
-        if i in lettersGuessed:
-            s.append(i)
-    ans=''
-    for i in secretWord:
-        if i in s:
-            ans+=i
-        else:
-            ans+='_ '
-    return ans
-
-
-
-def getAvailableLetters(lettersGuessed):
-    '''
-    lettersGuessed: list, what letters have been guessed so far
-    returns: string, comprised of letters that represents what letters have not
-      yet been guessed.
-    '''
-    import string
-    ans=list(string.ascii_lowercase)
-    for i in lettersGuessed:
-        ans.remove(i)
-    return ''.join(ans)
-
-def hangman(secretWord):
-    '''
-    secretWord: string, the secret word to guess.
-
-    Starts up an interactive game of Hangman.
-
-    * At the start of the game, let the user know how many 
-      letters the secretWord contains.
-
-    * Ask the user to supply one guess (i.e. letter) per round.
-
-    * The user should receive feedback immediately after each guess 
-      about whether their guess appears in the computers word.
-
-    * After each round, you should also display to the user the 
-      partially guessed word so far, as well as letters that the 
-      user has not yet guessed.
-
-    Follows the other limitations detailed in the problem write-up.
-    '''
-    print("Welcome to the game, Hangman!")
-    print("I am thinking of a word that is",len(secretWord),"letters long.")
-    
-    global lettersGuessed
-    mistakeMade=0
-    lettersGuessed=[]
-    
-    while 8 - mistakeMade > 0:
-        
-        if isWordGuessed(secretWord, lettersGuessed):
-            print("-------------")
-            print("Congratulations, you won!")
-            break
-            
-        else:
-            print("-------------")
-            print("You have",8-mistakeMade,"guesses left.")
-            print("Available letters:",getAvailableLetters(lettersGuessed))
-            guess=str(input("Please guess a letter: ")).lower()
-            
-            if guess in lettersGuessed:
-                print("Oops! You've already guessed that letter:",getGuessedWord(secretWord,lettersGuessed))
-                
-            elif guess in secretWord and guess not in lettersGuessed:
-                lettersGuessed.append(guess)
-                print("Good guess:",getGuessedWord(secretWord,lettersGuessed))
-                
-            else:
-                lettersGuessed.append(guess)
-                mistakeMade += 1
-                print("Oops! That letter is not in my word:",getGuessedWord(secretWord,lettersGuessed))
-                
-        if 8 - mistakeMade == 0:
-            print("-------------")
-            print("Sorry, you ran out of guesses. The word was else.",secretWord)
-            break
-        
-        else:
-            continue
-
-
-secretWord = chooseWord(wordlist).lower()
-hangman(secretWord)
+# Final result
+if "_" not in word_display:
+    print("🎊 Congratulations! You guessed the word:", chosen_word)
+else:
+    print("💀 Game Over! The word was:", chosen_word)
